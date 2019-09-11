@@ -32,8 +32,13 @@ for ii = 1:length(names)
         warning("'time' is not a valid signal name")
     elseif isa(ts,'Simulink.SimulationData.Signal')
         tsc.(cleanString(names{ii})) = ts.Values;
-        if ~exist('timevec','var')
-            timevec = ts.Values.Time;
+        try
+            if ~exist('timevec','var')
+                timevec = ts.Values.Time;
+            elseif length(timevec) < length(ts.Values.Time)
+                timevec = ts.Values.Time;
+            end
+        catch
         end
     else
        warning('Duplicate signal names %s, skipping', names{ii})

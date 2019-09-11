@@ -5,10 +5,13 @@ end
 
 lengthScaleFactor = 1/1;
 densityScaleFactor = 1/1;
-duration_s  = 500*sqrt(lengthScaleFactor);
+duration_s  = 3000*sqrt(lengthScaleFactor);
 dynamicCalc = '';
 SPOOLINGCONTROLLER = 'intra';
-
+%% Temp Stuff
+load('tenSurf1000x1000.mat')
+ki_iter=60;
+kp_iter=120;
 %% PLOT BITS
 DAMPlot = true; % desired and achieved moments
 CSDPlot = true; % control surface deflections
@@ -153,19 +156,19 @@ simWithMonitor('OCTModel')
 parseLogsout;
 kiteAxesPlot
 %stopCallback
-    indlist = find(tsc.atZero.Data==1);
-    ind1=indlist(1);
-    doneflag=false;
-    n=2;
-    while n<=length(indlist) && ~doneflag
-        if indlist(n)-ind1 > .05 * ind1
-            ind2=indlist(n);
-            doneflag = true;
-        end
-        n=n+1;
-    end
-    inds = [ind1 ind2];
-    times = tsc.atZero.Time(ind1:ind2);
+%     indlist = find(tsc.atZero.Data==1);
+%     ind1=indlist(1);
+%     doneflag=false;
+%     n=2;
+%     while n<=length(indlist) && ~doneflag
+%         if indlist(n)-ind1 > .05 * ind1
+%             ind2=indlist(n);
+%             doneflag = true;
+%         end
+%         n=n+1;
+%     end
+%     inds = [ind1 ind2];
+%     times = tsc.atZero.Time(ind1:ind2);
 %% Desired And Achieved Moments
 % if DAMPlot
 % figure
