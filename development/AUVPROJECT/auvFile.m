@@ -36,18 +36,19 @@ possibleBatteryLife      = 0:100;
 
 %time cost from charging at  flowspeeds at 100 different flow speeds
 %TODO: Run OCTModel with a range of constant flow speeds
-%TODO Name change?
 flowTimeCost             = randi(10,1,100);
 
 % VEHICLE POSITION TO POSITION STAGE PENALTY (TIME)
 vhclPosChangeTimePenalty = posInt/vhclVelMag ; %tau
 
 % COST TO REAL IN AN OUT THE KITE 
-startKiteCost = 300; %seconds
+startKiteCost = 1000; %seconds
 
 % Total matrix of indexes for the best previous at each current
 totalIndexMat = [];
 
+% Total matrix of smallest cost at each stage of the previous
+initialStateCostPerStage = [];
 %% final cost computation 
 
             terminalCost              = [];
@@ -72,16 +73,7 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             indexMat                 = [];
     %number of states in current stage
     for ii = length(possibleBatteryLife):-1:1
-        
-            %as you change stages, the cost to finish at each state combo is
-            %carried back
-            if exist('initialStateCostPerStage','var')
-            intialStateCost          = initialStateCostPerStage(ii);
-            else
-            intialStateCost          = 0; %TODO clean up potential by using terminal cost here?     
-            end
-            
-            
+   
             
             %velocity of wind at current stage
             %possible battery lifes 
@@ -102,15 +94,16 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             energySpentToMovePercent = ceil(100*propulsionEnergy/batteryMaxEnergy);
             batteryEnergyRemaining   = stateBatteryLife - energySpentToMovePercent;
             timeChargeOnePercentCur  = flowTimeCost(i-1);
+            
             %if you cannot make it to next position, you have to stop and
             %charge until you can make it. Your battery in the next stage
             %is now zero starting out
             if batteryEnergyRemaining< 0   
-            timePenaltyCantMakeIt    = timeChargeOnePercentCur * (energySpentToMovePercent - batteryEnergyRemaining);
-            batteryEnergyRemaining   = 0;
-            totalAddedStageCost      = timePenaltyCantMakeIt + startKiteCost; %This should never be chosen
+                 timePenaltyCantMakeIt    = timeChargeOnePercentCur * (energySpentToMovePercent - batteryEnergyRemaining);
+                 batteryEnergyRemaining   = 0;
+                 totalAddedStageCost      = timePenaltyCantMakeIt + startKiteCost; %This should never be chosen
             else
-            totalAddedStageCost      = 0;
+                 totalAddedStageCost      = 0;
             end
             
             
@@ -121,17 +114,28 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
 
             timeChargeOnePercentPrev = flowTimeCost(i); 
             timePenaltyCharging      = timeChargeOnePercentPrev*(possibleBatteryLife(iii)-batteryEnergyRemaining);
-%             disp(timePenaltyCharging) 
-            
-            if timePenaltyCharging   == 0 
-            costToFinish             = totalAddedStageCost + vhclPosChangeTimePenalty + intialStateCost;  
-            elseif timePenaltyCharging <0 
-            costToFinish             = NaN;
+
+            %as you change stages, the cost to finish at each state combo is
+            %carried back
+            if ~isempty(initialStateCostPerStage)
+                initialStateCost          = initialStateCostPerStage((length(possibleBatteryLife)+1)-iii,(numStages-1)-i);
             else
-            costToFinish             = totalAddedStageCost + vhclPosChangeTimePenalty + timePenaltyCharging + startKiteCost + intialStateCost;
+                initialStateCost          = 0;     
             end
             
-            if i == numStages
+            
+            
+            if timePenaltyCharging   == 0 
+                costToFinish             = totalAddedStageCost + vhclPosChangeTimePenalty + initialStateCost;  
+            elseif timePenaltyCharging <0 
+                costToFinish             = NaN;
+            else
+                costToFinish             = totalAddedStageCost + vhclPosChangeTimePenalty + timePenaltyCharging + startKiteCost + initialStateCost;
+            end
+            
+            
+            
+            if i == numStages-1
                 costToFinish = costToFinish + terminalCost(length(possibleBatteryLife)-possibleBatteryLife(iii));
             end
             
@@ -139,50 +143,81 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
         end
         
            [smallestCost,index]      = min(costToFinishMat);
-            smallestCostMat          =[smallestCostMat, smallestCost];
+           
+            %matrix of smallest costs for each state of current stage
+            smallestCostMat          =[smallestCostMat; smallestCost];
+            
+            %matrix of indices of smallest costs for each state of current stage
             indexMat                 =[indexMat;index]; 
+            
 
     end   
-            %gets updated after the completion of finding the lowest cost
-            %per state in a stage
-            initialStateCostPerStage = smallestCostMat;
+            %matrix of smallest costs for each state for all stages
+            initialStateCostPerStage =[initialStateCostPerStage,smallestCostMat];
+            %matrix of indices of smallest costs for each state of all
+            %stages
             totalIndexMat            =[totalIndexMat, indexMat];
         
     
 end
+
+
+%total index matrix has to be flipped up down and left right for index
+%sorting
+
+         flip1 =   fliplr(totalIndexMat);
+         flip2 =   flipud(totalIndexMat);
+         
+         
+%     columns
+for j = 1:numStates-2 length(possibleBatteryLife)
+    
+%     rows
+    for p = 1: length(possibleBatteryLife)
+    position1 = flip2(j,p)
+    position2 = flip2(position2,
+    end
+end
+
 %% cost for initial position to finish
 
-           vWind                    = flowSpeeds(1);
+            vWind                    = flowSpeeds(1);
             stateBatteryLife         = possibleBatteryLife(end); 
             
 %%%%%%%%%%%%%%%%% INITIAL DRAG DYNAMICS
             Cd                       = 1; 
             vApp                     = vWind - vhclVelocity;
             vAppMag                  = sqrt(sum(vApp.^2));
-            dragForce                = .5.*densityOfFluid.*vAppMag.^2 .*aRef.*Cd;
-    
+            dragForce                = .5.*densityOfFluid.*vAppMag.^2 .*aRef.*Cd;       
             dragEnergy               = dragForce * posInt; 
-            propulsionEnergy         = propulsionPower * vhclPosChangeTimePenalty ;  
-            energySpentToMovePercent = ceil(100*(dragEnergy + propulsionEnergy)/batteryMaxEnergy);
-            batteryEnergyRemaining   = stateBatteryLife - energySpentToMovePercent;
-            timeChargeOnePercentInit = flowTimeCost(1);
+            propulsionEnergy         = dragEnergy; %maxPropusionEnergy = propulsionPower * vhclPosChangeTimePenalty ;  
+            energySpentToMovePercent = ceil(100*propulsionEnergy/batteryMaxEnergy);
+            batteryEnergyRemaining   = stateBatteryLife - energySpentToMovePercent;  
+            timeChargeOnePercentInit = flowTimeCost(2);
             initCostToFinishMat      = [];
 for iii = length(possibleBatteryLife):-1:1
 
-            timePenaltyCharging      = timeChargeOnePercentInit*((iii-1)-batteryEnergyRemaining);
-       
+            timePenaltyCharging      = timeChargeOnePercentInit*(possibleBatteryLife(iii)-batteryEnergyRemaining);
+            initialStateCost         = initialStateCostPerStage((length(possibleBatteryLife)+1)-iii,end);
             if timePenaltyCharging   == 0 
-            initCostToFinish         =  vhclPosChangeTimePenalty;  
+                initCostToFinish         =  vhclPosChangeTimePenalty;  
             elseif timePenaltyCharging <0 
-            initCostToFinish         = NaN;
+                initCostToFinish         = NaN;
             else
-            initCostToFinish         = vhclPosChangeTimePenalty + timePenaltyCharging + startKiteCost ;
+                initCostToFinish         = vhclPosChangeTimePenalty + timePenaltyCharging + startKiteCost ;
             end
-            initCostToFinishMat      =[initCostToFinishMat,costToFinish];
+            
+            initCostToFinishMat       =[initCostToFinishMat,costToFinish];
+           [smallestCostInit,indexInit]      = min(initCostToFinishMat);
 end
+    [smallestCostInit,indexInit]      = min(initCostToFinishMat);
+    
+    
+%% tracing back out the paths from the indices
 
 
-            [smallestCostInit,indexInit]      = min(costToFinishMat);
+
+            
             
             
 
