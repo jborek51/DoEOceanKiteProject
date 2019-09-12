@@ -11,13 +11,7 @@
 %% if you are getting commit issues and want to rebase anyway use
 % !git checkout origin/master -f
 % !git rebase --continue
-tempFilename = 'temp.txt';
+
+
 !git fetch
-% eval(sprintf("!git rev-parse --abbrev-ref HEAD > %s",tempFilename));
-% pause(1)
-% FID=fopen(tempFilename,'r');
-% branch = fscanf(FID,'%s');
-% fclose(FID);
-% delete(tempFilename)
-% eval(sprintf("!git rebase origin/%s",branch))
 !FOR /F "tokens=* USEBACKQ" %F IN (`git rev-parse --abbrev-ref HEAD`) DO (git rebase origin/%F)
