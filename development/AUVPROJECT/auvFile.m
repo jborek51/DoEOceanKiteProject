@@ -11,12 +11,6 @@ flowSpeeds               = vq;
 %xdistance between each stage
 posInt                   = xq(end)/length(vq);
 
-% full charge
-socLimitUpper            = 1;
-
-% recharge
-socLimitLower            = 0;
-
 %fluid density
 densityOfFluid           = 1000; %kg/m^3
 
@@ -24,23 +18,25 @@ densityOfFluid           = 1000; %kg/m^3
 aRef                     = 10; %m^2
 
 %maximum battery energy capacity 
-batteryMaxEnergy         = 3.6e+8 ; %joules %400 KHW
+batteryMaxEnergy         = 3.6e+8 ; %joules %100 KHW
 
 %propulsion Power of a 10 hp motor
 propulsionPower          = 7.457; %kw
 
-%vCurrent
-vWind                    = [-1;0;0];
+% %vCurrent
+% vWind                    = [-1;0;0];
 
 %start with full battery
 
-vhclVelocity             = [5;0;0]; % m/s %velocity of the vehicle 
-vhclVelMag               = sqrt(sum(vhclVelocity.^2));
+vhclVelocity             = [5;0;0]; % m/s %velocity of the vehicle
+vhclVelMag               = 5;%sqrt(sum(vhclVelocity.^2));
 
 %possible Battery Life
 possibleBatteryLife      = 0:100;
 
 %time cost from charging at  flowspeeds at 100 different flow speeds
+%TODO: Run OCTModel with a range of constant flow speeds
+%TODO Name change?
 flowTimeCost             = randi(10,1,100);
 
 % VEHICLE POSITION TO POSITION STAGE PENALTY (TIME)
@@ -58,15 +54,19 @@ totalIndexMat = [];
             
   for j = 1:length(possibleBatteryLife)
       
-            terminalBatteryRemaining  = socLimitUpper*100 - possibleBatteryLife(j); 
-            timeToChargeToFull        = flowTimeCost(100)*(100-terminalBatteryRemaining) + startKiteCost;
+            terminalBatteryRemaining  = 100 - possibleBatteryLife(j); 
+            if terminalBatteryRemaining > 0
+                timeToChargeToFull        = flowTimeCost(100)*terminalBatteryRemaining + startKiteCost;
+            else
+                timeToChargeToFull        = 0;
+            end
             terminalCost              = [terminalCost,timeToChargeToFull]; 
             
   end 
 %% for loop 
 
 %stage before the last backwards to 
-for i = numStages-1:-1:2 
+for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a full stage
     
             smallestCostMat          = [];
             indexMat                 = [];
@@ -75,10 +75,10 @@ for i = numStages-1:-1:2
         
             %as you change stages, the cost to finish at each state combo is
             %carried back
-            if exist('initialStateCostPerStage')
+            if exist('initialStateCostPerStage','var')
             intialStateCost          = initialStateCostPerStage(ii);
             else
-            intialStateCost          = 0;     
+            intialStateCost          = 0; %TODO clean up potential by using terminal cost here?     
             end
             
             
@@ -98,8 +98,8 @@ for i = numStages-1:-1:2
 %%%%%%%%%%%%%%%%%INCREASE IN CHARGE COST 
             
             dragEnergy               = dragForce * posInt; 
-            propulsionEnergy         = propulsionPower * vhclPosChangeTimePenalty ;  
-            energySpentToMovePercent = ceil(100*(dragEnergy + propulsionEnergy)/batteryMaxEnergy);
+            propulsionEnergy         = dragEnergy; %maxPropusionEnergy = propulsionPower * vhclPosChangeTimePenalty ;  
+            energySpentToMovePercent = ceil(100*propulsionEnergy/batteryMaxEnergy);
             batteryEnergyRemaining   = stateBatteryLife - energySpentToMovePercent;
             timeChargeOnePercentCur  = flowTimeCost(i-1);
             %if you cannot make it to next position, you have to stop and
@@ -108,18 +108,19 @@ for i = numStages-1:-1:2
             if batteryEnergyRemaining< 0   
             timePenaltyCantMakeIt    = timeChargeOnePercentCur * (energySpentToMovePercent - batteryEnergyRemaining);
             batteryEnergyRemaining   = 0;
-            totalAddedStageCost      = timePenaltyCantMakeIt + startKiteCost;
+            totalAddedStageCost      = timePenaltyCantMakeIt + startKiteCost; %This should never be chosen
             else
             totalAddedStageCost      = 0;
             end
+            
+            
             costToFinishMat          = [];
-%             disp(batteryEnergyRemaining)
         
         % possible battery life = states
-        for iii = length(possibleBatteryLife):-1:1           
+        for iii = length(possibleBatteryLife):-1:1  %Note: battery life must be in single digit percents 
 
             timeChargeOnePercentPrev = flowTimeCost(i); 
-            timePenaltyCharging      = timeChargeOnePercentPrev*((iii-1)-batteryEnergyRemaining);
+            timePenaltyCharging      = timeChargeOnePercentPrev*(possibleBatteryLife(iii)-batteryEnergyRemaining);
 %             disp(timePenaltyCharging) 
             
             if timePenaltyCharging   == 0 
@@ -131,7 +132,7 @@ for i = numStages-1:-1:2
             end
             
             if i == numStages
-                costToFinish = costToFinish + terminalCost(1+length(possibleBatteryLife)-iii);
+                costToFinish = costToFinish + terminalCost(length(possibleBatteryLife)-possibleBatteryLife(iii));
             end
             
             costToFinishMat          =[costToFinishMat,costToFinish];
