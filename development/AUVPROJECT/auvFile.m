@@ -1,4 +1,4 @@
-clc; 
+
 clear all; 
 
 transectData
@@ -18,13 +18,7 @@ densityOfFluid           = 1000; %kg/m^3
 aRef                     = 10; %m^2
 
 %maximum battery energy capacity 
-batteryMaxEnergy         = 3.6e+8 ; %joules %100 KHW
-
-%propulsion Power of a 10 hp motor
-propulsionPower          = 7.457; %kw
-
-% %vCurrent
-% vWind                    = [-1;0;0];
+batteryMaxEnergy         = 3.6e+9 ; %joules %100 KHW
 
 %start with full battery
 
@@ -36,13 +30,13 @@ possibleBatteryLife      = 0:100;
 
 %time cost from charging at  flowspeeds at 100 different flow speeds
 %TODO: Run OCTModel with a range of constant flow speeds
-flowTimeCost             = randi(10,1,100);
+chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
 
 % VEHICLE POSITION TO POSITION STAGE PENALTY (TIME)
 vhclPosChangeTimePenalty = posInt/vhclVelMag ; %tau
 
 % COST TO REAL IN AN OUT THE KITE 
-startKiteCost = 1000; %seconds
+startKiteCost = 300; %seconds
 
 % Total matrix of indexes for the best previous at each current
 totalIndexMat = [];
@@ -57,7 +51,7 @@ initialStateCostPerStage = [];
       
             terminalBatteryRemaining  = 100 - possibleBatteryLife(j); 
             if terminalBatteryRemaining > 0
-                timeToChargeToFull        = flowTimeCost(100)*terminalBatteryRemaining + startKiteCost;
+                timeToChargeToFull        = chargeOnePercentPerFlowSpeed(100)*terminalBatteryRemaining + startKiteCost;
             else
                 timeToChargeToFull        = 0;
             end
@@ -65,20 +59,29 @@ initialStateCostPerStage = [];
             
   end 
 %% for loop 
+%                     current     previous
+% 0          0             0        0 
+% 0          0             0        0 
+% 0          0             0        0 
+% 0          0             0        0 
+%     new Current  new previous
+
+
+
+
 
 %stage before the last backwards to 
-for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a full stage
+for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a full stage. %FINISHED: I don't think that it is 
     
-            smallestCostMat          = [];
-            indexMat                 = [];
+            smallestCostMat          = []; % initializing the matrix that is updated per stage that holds the smallest costs per state of the CURRENT STAGE
+            indexMat                 = []; % initializing the matrix that is updated per stage that holds the index of the state with the smallest costs in the PREVIOUS per state of the CURRENT STAGE
     %number of states in current stage
     for ii = length(possibleBatteryLife):-1:1
    
             
-            %velocity of wind at current stage
-            %possible battery lifes 
-            vWind                    = flowSpeeds(i);
-            stateBatteryLife         = possibleBatteryLife(ii); 
+            
+            vWind                    = flowSpeeds(i);  %velocity of wind at current stage
+            stateBatteryLife         = possibleBatteryLife(ii); %possible battery lifes %states of the CURRENT STAGE
             
             
 %%%%%%%%%%%%%%%%% DRAG DYNAMICS
@@ -93,7 +96,7 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             propulsionEnergy         = dragEnergy; %maxPropusionEnergy = propulsionPower * vhclPosChangeTimePenalty ;  
             energySpentToMovePercent = ceil(100*propulsionEnergy/batteryMaxEnergy);
             batteryEnergyRemaining   = stateBatteryLife - energySpentToMovePercent;
-            timeChargeOnePercentCur  = flowTimeCost(i-1);
+            timeChargeOnePercentCur  = chargeOnePercentPerFlowSpeed(i-1); %time to charge one percent at the current flowspeed 
             
             %if you cannot make it to next position, you have to stop and
             %charge until you can make it. Your battery in the next stage
@@ -101,7 +104,7 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             if batteryEnergyRemaining< 0   
                  timePenaltyCantMakeIt    = timeChargeOnePercentCur * (energySpentToMovePercent - batteryEnergyRemaining);
                  batteryEnergyRemaining   = 0;
-                 totalAddedStageCost      = timePenaltyCantMakeIt + startKiteCost; %This should never be chosen
+                 totalAddedStageCost      = timePenaltyCantMakeIt + startKiteCost+10000000; %This should never be chosen
             else
                  totalAddedStageCost      = 0;
             end
@@ -112,15 +115,15 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
         % possible battery life = states
         for iii = length(possibleBatteryLife):-1:1  %Note: battery life must be in single digit percents 
 
-            timeChargeOnePercentPrev = flowTimeCost(i); 
+            timeChargeOnePercentPrev = chargeOnePercentPerFlowSpeed(i); %time to charge one percent at the previous flowspeed
             timePenaltyCharging      = timeChargeOnePercentPrev*(possibleBatteryLife(iii)-batteryEnergyRemaining);
 
             %as you change stages, the cost to finish at each state combo is
             %carried back
             if ~isempty(initialStateCostPerStage)
-                initialStateCost          = initialStateCostPerStage((length(possibleBatteryLife)+1)-iii,(numStages-1)-i);
+                initialStateCost          = initialStateCostPerStage((length(possibleBatteryLife)+1)-iii,(numStages-1)-i); % grabbing the first element of the cost per state in the previous stage. This is how the costs travel backwards through each stage.
             else
-                initialStateCost          = 0;     
+                initialStateCost          = 0; %If you havent gone through any current to previous stage pairs yet, the initial state cost is the terminal cost     
             end
             
             
@@ -134,7 +137,9 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             end
             
             
-            
+            % if it is the first time running the loop, the
+            % initialStateCostPerStage matrix ( the matrix which stores the
+            % minimum cost per state of the CURRENT stage
             if i == numStages-1
                 costToFinish = costToFinish + terminalCost(length(possibleBatteryLife)-possibleBatteryLife(iii));
             end
@@ -154,6 +159,7 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
     end   
             %matrix of smallest costs for each state for all stages
             initialStateCostPerStage =[initialStateCostPerStage,smallestCostMat];
+            
             %matrix of indices of smallest costs for each state of all
             %stages
             totalIndexMat            =[totalIndexMat, indexMat];
@@ -162,22 +168,52 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
 end
 
 
-%total index matrix has to be flipped up down and left right for index
+%total index matrix to be flipped left right for index
 %sorting
 
-         flip1 =   fliplr(totalIndexMat);
-         flip2 =   flipud(totalIndexMat);
+         flipMat =   fliplr(totalIndexMat);
+               
          
-         
+%creating the paths that were taken
 %     columns
-for j = 1:numStates-2 length(possibleBatteryLife)
+eachPathMatr = {}; %initializing final path per element of last column matrix 
+
+for j = 1:length(possibleBatteryLife)
     
-%     rows
-    for p = 1: length(possibleBatteryLife)
-    position1 = flip2(j,p)
-    position2 = flip2(position2,
+    pathMat   = [];
+    position1 = flipMat(j,1);
+    
+    %     rows
+    for p = 2: numStages-2
+    
+        if p ==2 
+    position2 = flipMat(position1,p);
+        else
+    position2 = flipMat(position2,p);        
+        end
+    
+    
+    %path mat is a matrix of indexs each elements of the last column took
+    %I flipped totalIndexMat LR so it is easier to think about.
+    pathMat   = [pathMat,position2];
+        
     end
+    eachPathMatr{j} = [position1,pathMat];
 end
+
+%the results of each pathMatr show the paths that were taken starting from
+%the the stage ( 1 before end ) to the stage 2. This is kind of confusing
+%to look at because the indices look like they should be battery like but
+%they are really 101-index equals battery life.  
+
+% So, I am reformating to show the steps in battery life
+%
+for i = 1:length(eachPathMatr)
+   batteryLifeSteps{i} = 101- eachPathMatr{i};
+end
+
+figure(1);plot(batteryLifeSteps{1})
+figure(2);plot(chargeOnePercentPerFlowSpeed)   
 
 %% cost for initial position to finish
 
@@ -193,7 +229,7 @@ end
             propulsionEnergy         = dragEnergy; %maxPropusionEnergy = propulsionPower * vhclPosChangeTimePenalty ;  
             energySpentToMovePercent = ceil(100*propulsionEnergy/batteryMaxEnergy);
             batteryEnergyRemaining   = stateBatteryLife - energySpentToMovePercent;  
-            timeChargeOnePercentInit = flowTimeCost(2);
+            timeChargeOnePercentInit = chargeOnePercentPerFlowSpeed(2);
             initCostToFinishMat      = [];
 for iii = length(possibleBatteryLife):-1:1
 
