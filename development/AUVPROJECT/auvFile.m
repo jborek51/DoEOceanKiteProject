@@ -178,10 +178,33 @@ end
 %     columns
 eachPathMatr = {}; %initializing final path per element of last column matrix 
 
+% for j = 1:length(possibleBatteryLife)
+%     
+%     pathMat   = [];
+%     position1 = flipMat(j,1);
+%     
+%     %     rows
+%     for p = 2: numStages-2
+%     
+%         if p ==2 
+%     position2 = flipMat(position1,p);
+%         else
+%     position2 = flipMat(position2,p);        
+%         end
+%     
+%     
+%     %path mat is a matrix of indexs each elements of the last column took
+%     %I flipped totalIndexMat LR so it is easier to think about.
+%     pathMat   = [pathMat,position2];
+%         
+%     end
+%     eachPathMatr{j} = [position1,pathMat];
+% end
+
 for j = 1:length(possibleBatteryLife)
     
     pathMat   = [];
-    position1 = flipMat(j,1);
+    position1 =  totalIndexMat(j,1);
     
     %     rows
     for p = 2: numStages-2
@@ -201,6 +224,7 @@ for j = 1:length(possibleBatteryLife)
     eachPathMatr{j} = [position1,pathMat];
 end
 
+
 %the results of each pathMatr show the paths that were taken starting from
 %the the stage ( 1 before end ) to the stage 2. This is kind of confusing
 %to look at because the indices look like they should be battery like but
@@ -212,8 +236,17 @@ for i = 1:length(eachPathMatr)
    batteryLifeSteps{i} = 101- eachPathMatr{i};
 end
 
-figure(1);plot(batteryLifeSteps{1})
+figure(1)
+for i = 1:length(eachPathMatr)
+plot(batteryLifeSteps{i})
+hold on 
+end
+hold off
 figure(2);plot(chargeOnePercentPerFlowSpeed)   
+title('Inversion of Max Flow Profile')
+ylabel('Example Time To Charge One Battery Increment (s)')
+xlabel('Transect position Increment')
+
 
 %% cost for initial position to finish
 
@@ -236,20 +269,22 @@ for iii = length(possibleBatteryLife):-1:1
             timePenaltyCharging      = timeChargeOnePercentInit*(possibleBatteryLife(iii)-batteryEnergyRemaining);
             initialStateCost         = initialStateCostPerStage((length(possibleBatteryLife)+1)-iii,end);
             if timePenaltyCharging   == 0 
-                initCostToFinish         =  vhclPosChangeTimePenalty;  
+                initCostToFinish         =  vhclPosChangeTimePenalty + initialStateCost;  
             elseif timePenaltyCharging <0 
                 initCostToFinish         = NaN;
             else
-                initCostToFinish         = vhclPosChangeTimePenalty + timePenaltyCharging + startKiteCost ;
+                initCostToFinish         = vhclPosChangeTimePenalty + timePenaltyCharging + startKiteCost + initialStateCost ;
             end
             
-            initCostToFinishMat       =[initCostToFinishMat,costToFinish];
+            initCostToFinishMat       =[initCostToFinishMat,initCostToFinish];
            [smallestCostInit,indexInit]      = min(initCostToFinishMat);
 end
     [smallestCostInit,indexInit]      = min(initCostToFinishMat);
     
     
 %% tracing back out the paths from the indices
+
+% winning path plot =
 
 
 

@@ -40,7 +40,12 @@ moveDirYv = interp1(1:15,diff(latRad),linspace(1,15,length(xq)-1));
 moveDirX = moveDirXv ./ sqrt(moveDirXv.^2 + moveDirYv.^2);
 moveDirY = moveDirYv ./ sqrt(moveDirXv.^2 + moveDirYv.^2);
 % flowDirX = 
-% plot(xq,vq)
+ plot(xq,vq)
+ 
+ title(' Max flow velocity vs.  Transect Positions')
+ ylabel('Max Flow Velocity (m/s)')
+ xlabel('Transect Positions (m)')
+ 
  
 
 
