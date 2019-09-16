@@ -18,7 +18,7 @@ densityOfFluid           = 1000; %kg/m^3
 aRef                     = 10; %m^2
 
 %maximum battery energy capacity 
-batteryMaxEnergy         = 3.6e+9 ; %joules %100 KHW
+batteryMaxEnergy         = 1e+10 ; %joules %100 KHW
 
 %start with full battery
 
@@ -30,13 +30,13 @@ possibleBatteryLife      = 0:100;
 
 %time cost from charging at  flowspeeds at 100 different flow speeds
 %TODO: Run OCTModel with a range of constant flow speeds
-chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
+chargeOnePercentPerFlowSpeed             = 1000./flowSpeeds;%randi(10,1,100);
 
 % VEHICLE POSITION TO POSITION STAGE PENALTY (TIME)
 vhclPosChangeTimePenalty = posInt/vhclVelMag ; %tau
 
 % COST TO REAL IN AN OUT THE KITE 
-startKiteCost = 300; %seconds
+startKiteCost = 3000; %seconds
 
 % Total matrix of indexes for the best previous at each current
 totalIndexMat = [];
@@ -141,7 +141,7 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             % initialStateCostPerStage matrix ( the matrix which stores the
             % minimum cost per state of the CURRENT stage
             if i == numStages-1
-                costToFinish = costToFinish + terminalCost(length(possibleBatteryLife)-possibleBatteryLife(iii));
+                costToFinish = costToFinish + terminalCost(iii);
             end
             
             costToFinishMat          =[costToFinishMat,costToFinish];
@@ -166,58 +166,30 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
         
     
 end
-
-
-%total index matrix to be flipped left right for index
-%sorting
-
-         flipMat =   fliplr(totalIndexMat);
-               
-         
+                    
 %creating the paths that were taken
 %     columns
 eachPathMatr = {}; %initializing final path per element of last column matrix 
 
-% for j = 1:length(possibleBatteryLife)
-%     
-%     pathMat   = [];
-%     position1 = flipMat(j,1);
-%     
-%     %     rows
-%     for p = 2: numStages-2
-%     
-%         if p ==2 
-%     position2 = flipMat(position1,p);
-%         else
-%     position2 = flipMat(position2,p);        
-%         end
-%     
-%     
-%     %path mat is a matrix of indexs each elements of the last column took
-%     %I flipped totalIndexMat LR so it is easier to think about.
-%     pathMat   = [pathMat,position2];
-%         
-%     end
-%     eachPathMatr{j} = [position1,pathMat];
-% end
+
 
 for j = 1:length(possibleBatteryLife)
     
     pathMat   = [];
-    position1 =  totalIndexMat(j,1);
+    position1 =  totalIndexMat(j,end);
     
     %     rows
-    for p = 2: numStages-2
+    for p =  numStages-2:-1:2
     
-        if p ==2 
-    position2 = flipMat(position1,p);
+        if p == numStages-2 
+    position2 = totalIndexMat(position1,p);
         else
-    position2 = flipMat(position2,p);        
+    position2 = totalIndexMat(position2,p);        
         end
     
     
     %path mat is a matrix of indexs each elements of the last column took
-    %I flipped totalIndexMat LR so it is easier to think about.
+   
     pathMat   = [pathMat,position2];
         
     end
@@ -236,12 +208,24 @@ for i = 1:length(eachPathMatr)
    batteryLifeSteps{i} = 101- eachPathMatr{i};
 end
 
+% figure(1)
+%  plot((batteryLifeSteps{1}))
+%  
+% title('Battery Percentage vs. Transect position Increment ')
+% ylabel('Battery Percentage (s)')
+% xlabel('Transect position Increment')
 figure(1)
+ 
 for i = 1:length(eachPathMatr)
 plot(batteryLifeSteps{i})
 hold on 
-end
+end 
+
+title('Battery Percentage vs. Transect position Increment ')
+ylabel('Battery Percentage (s)')
+xlabel('Transect position Increment')
 hold off
+
 figure(2);plot(chargeOnePercentPerFlowSpeed)   
 title('Inversion of Max Flow Profile')
 ylabel('Example Time To Charge One Battery Increment (s)')
@@ -284,11 +268,11 @@ end
     
 %% tracing back out the paths from the indices
 
-% winning path plot =
-
-
-
-            
+% winning path 
+winningPath = [100, batteryLifeSteps{indexInit}];
+figure(5)
+plot( winningPath  ) 
+title('Winning Path')
             
             
 

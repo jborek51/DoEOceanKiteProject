@@ -2,9 +2,9 @@
 %%
 
 %load transect Data
-% load('2014_new')
+ load('2014_new')
 
-load('E:\flowData\2014_new')  
+%load('E:\flowData\2014_new')  
 timeSel = 7000;
 lonRad = deg2rad(lon(1:16));
 latRad = deg2rad(lat(1:16));
