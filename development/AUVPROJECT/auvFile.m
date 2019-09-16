@@ -30,13 +30,13 @@ possibleBatteryLife      = 0:100;
 
 %time cost from charging at  flowspeeds at 100 different flow speeds
 %TODO: Run OCTModel with a range of constant flow speeds
-chargeOnePercentPerFlowSpeed             = 1000./flowSpeeds;%randi(10,1,100);
+chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
 
 % VEHICLE POSITION TO POSITION STAGE PENALTY (TIME)
 vhclPosChangeTimePenalty = posInt/vhclVelMag ; %tau
 
 % COST TO REAL IN AN OUT THE KITE 
-startKiteCost = 3000; %seconds
+startKiteCost = 300; %seconds
 
 % Total matrix of indexes for the best previous at each current
 totalIndexMat = [];
@@ -273,8 +273,8 @@ winningPath = [100, batteryLifeSteps{indexInit}];
 figure(5)
 plot( winningPath  ) 
 title('Winning Path')
-            
-            
+ylabel('Battery Percentage (s)')
+xlabel('Transect position Increment')
 
 
 
