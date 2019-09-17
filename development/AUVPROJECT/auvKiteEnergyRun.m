@@ -2,7 +2,7 @@
 % runs the OCT model
  chargingMap = winningPath;
  costBestPathMat = [];
- 
+
 for i = 1:numStages-1
     
     %if it is not the terminal stage

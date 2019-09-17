@@ -7,7 +7,7 @@ transectData
 %number of stages 
 n = 2; %n = the number of times going one way. Back and forth, n = 2 
 numStages                = n*length(vq);
-flowSpeeds               = [vq,fliplr(vq)]; 
+flowSpeeds               = round([vq,fliplr(vq)],3); 
 
 %xdistance between each stage
 posInt                   = xq(end)/length(vq);
@@ -19,25 +19,53 @@ densityOfFluid           = 1000; %kg/m^3
 aRef                     = 10; %m^2
 
 %maximum battery energy capacity 
-totalBatteryEnergy        = 1e+10 ; %joules %100 KHW
+totalBatteryEnergy        = 9e+8; %joules %100 KHW
 
 %start with full battery
 
 vhclVelocity             = [4;0;0]; % m/s %velocity of the vehicle
-vhclVelMag               = 5;%sqrt(sum(vhclVelocity.^2));
+vhclVelMag               = 4;%sqrt(sum(vhclVelocity.^2));
 
 %possible Battery Life
 possibleBatteryLife      = 0:100;
 
+ chargeOnePercentPerFlowSpeed = [];
+%% charging data
 %time cost from charging at  flowspeeds at 100 different flow speeds
 %TODO: Run OCTModel with a range of constant flow speeds
-chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
 
+% stationary turbine 
+ eff=.5;
+ Aturb=2*8.5;%m^3
+ energyInOnePercent =totalBatteryEnergy/100; %Joules THIS NUMBER IS RANDOM AND SHOULD BE A REAL NUMBER
+%  chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
+
+%  chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
+
+x1 =  [.1,.5,1,1.5,2];
+x2 =  [5,1268,8670,35390,83130];
+flowForPower = .1:.001:2;
+interpolatedPower = interp1(x1,x2,flowForPower,'cubic');
+timeToChargePF =  energyInOnePercent./interpolatedPower;
+format long
+for q = 1:length(flowSpeeds)
+    
+    tempFlow = flowSpeeds(q)
+   [num,ind]=find(abs(10000000000*(flowForPower-tempFlow))<1)  ;
+    
+   indOfTTC = timeToChargePF(ind)
+   chargeOnePercentPerFlowSpeed = [chargeOnePercentPerFlowSpeed,indOfTTC ];
+   
+end
+
+%  plot(chargeOnePercentPerFlowSpeed)
+%  figure(2)
+%  plot(flowSpeeds)
 % VEHICLE POSITION TO POSITION STAGE PENALTY (TIME)
 vhclPosChangeTimePenalty = posInt/vhclVelMag ; %tau
 
 % COST TO REAL IN AN OUT THE KITE 
-startKiteCost = 300; %seconds
+startKiteCost = 600; %seconds
 
 
 %% final cost computation 
@@ -91,9 +119,9 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             
 %%%%%%%%%%%%%%%%% DRAG DYNAMICS
             Cd                       = 1.1*(.05*10 + .42*(.25*pi*1^2))/(10+(.25*pi*1^2)); 
-            vApp                     = vWind - vhclVelocity;
-            vAppMag                  = sqrt(sum(vApp.^2));
-            dragForce                = .5.*densityOfFluid.*vAppMag.^2 .*aRef.*Cd;
+            
+            
+            dragForce                = .5.*densityOfFluid.*vApp(i).^2 .*aRef.*Cd;
 
 %%%%%%%%%%%%%%%%%INCREASE IN CHARGE COST 
             
@@ -248,10 +276,8 @@ end
             stateBatteryLife         = pp; %possibleBatteryLife(end); 
             
 %%%%%%%%%%%%%%%%% INITIAL DRAG DYNAMICS
-            Cd                       = 1; 
-            vApp                     = vWind - vhclVelocity;
-            vAppMag                  = sqrt(sum(vApp.^2));
-            dragForce                = .5.*densityOfFluid.*vAppMag.^2 .*aRef.*Cd;       
+            Cd                       = 1.1*(.05*10 + .42*(.25*pi*1^2))/(10+(.25*pi*1^2)); 
+            dragForce                = .5.*densityOfFluid.*vApp(i).^2 .*aRef.*Cd;      
             dragEnergy               = dragForce * posInt; 
             propulsionEnergy         = dragEnergy; %maxPropusionEnergy = propulsionPower * vhclPosChangeTimePenalty ;  
             energySpentToMovePercent = ceil(100*propulsionEnergy/totalBatteryEnergy);
@@ -276,8 +302,15 @@ end
     [smallestCostInit,indexInit]      = min(initCostToFinishMat);
     winningPath{pp} = [pp,101-indexInit, batteryLifeSteps{indexInit},pp];
     
-
-
+    figure(99)
+    plot(winningPath{pp})
+    
+    title('Winning Path')
+    ylabel('Battery Percentage (s)')
+    xlabel('Transect position Increment')
+    hold on
+    
+    
     changingInitandFinalCondition     =  [changingInitandFinalCondition,smallestCostInit];
     
 
@@ -286,6 +319,7 @@ end
 
 
 end
+hold off
 [smallestStartingPoint,indexChng]      = mink(changingInitandFinalCondition,5);
 
 

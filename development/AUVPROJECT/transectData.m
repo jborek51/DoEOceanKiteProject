@@ -2,9 +2,9 @@
 %%
 
 %load transect Data
- %load('2014_new')
+ load('2014_new')
 
-load('E:\flowData\2014_new')  
+%load('E:\flowData\2014_new')  
 timeSel = 7000;
 lonRad = deg2rad(lon(1:16));
 latRad = deg2rad(lat(1:16));
@@ -47,7 +47,7 @@ moveDirX = moveDirXv ./ sqrt(moveDirXv.^2 + moveDirYv.^2);
 moveDirY = moveDirYv ./ sqrt(moveDirXv.^2 + moveDirYv.^2);
 
 % flowDirX = 
-plot(xq,vq)
+%plot(xq,vq)
  
 title(' Max flow velocity vs.  Transect Positions')
 ylabel('Max Flow Velocity (m/s)')
@@ -60,7 +60,7 @@ moveDirX = [moveDirX flip(-1*moveDirX)];
 moveDirY = [moveDirY flip(-1*moveDirY)];
 for i=1:length(Ubot)
     %vapp = sqrt((VwindEast-VEast)^2 + (north)^2)
-    Vapp(i)=sqrt((Ubot(i) - (constVel*moveDirX(i)))^2 + (Vbot(i) - (constVel*moveDirY(i)))^2);
+    vApp(i)=sqrt((Ubot(i) - (constVel*moveDirX(i)))^2 + (Vbot(i) - (constVel*moveDirY(i)))^2);
 end
     
 
@@ -70,7 +70,7 @@ end
 % u(time,station,z): u velocity
 % v(time,station,z): v velocity
 
-% if botherJames == 1
-figure;
-contourf(flipud(U)) 
-% end 
+%  if botherJames == 1
+% figure;
+% contourf(flipud(U)) 
+%  end 
