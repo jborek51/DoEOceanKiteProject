@@ -19,7 +19,7 @@ densityOfFluid           = 1000; %kg/m^3
 aRef                     = 10; %m^2
 
 %maximum battery energy capacity 
-batteryMaxEnergy         = 1e+10 ; %joules %100 KHW
+totalBatteryEnergy        = 1e+10 ; %joules %100 KHW
 
 %start with full battery
 
@@ -43,6 +43,8 @@ startKiteCost = 300; %seconds
 %% final cost computation 
 changingInitandFinalCondition = [];
 for pp = 100:-1:10
+    
+    disp(pp)
             terminalCost              = [];
             termAndInitCondition      = pp;
             % Total matrix of indexes for the best previous at each current
@@ -97,7 +99,7 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             
             dragEnergy               = dragForce * posInt; 
             propulsionEnergy         = dragEnergy; %maxPropusionEnergy = propulsionPower * vhclPosChangeTimePenalty ;  
-            energySpentToMovePercent = ceil(100*propulsionEnergy/batteryMaxEnergy);
+            energySpentToMovePercent = ceil(100*propulsionEnergy/totalBatteryEnergy);
             batteryEnergyRemaining   = stateBatteryLife - energySpentToMovePercent;
             timeChargeOnePercentCur  = chargeOnePercentPerFlowSpeed(i-1); %time to charge one percent at the current flowspeed 
             
@@ -144,7 +146,12 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             % initialStateCostPerStage matrix ( the matrix which stores the
             % minimum cost per state of the CURRENT stage
             if i == numStages-1
+%                   if pp < stateBatteryLife  
+%                      costToFinish = NaN;
+%                   else
+                
                 costToFinish = costToFinish + terminalCost(iii);
+%                   end
             end
             
             costToFinishMat          =[costToFinishMat,costToFinish];
@@ -175,13 +182,13 @@ end
 eachPathMatr = {}; %initializing final path per element of last column matrix 
 
 
-
+%rows
 for j = 1:length(possibleBatteryLife)
     
     pathMat   = [];
     position1 =  totalIndexMat(j,end);
     
-    %     rows
+    %     columns
     for p =  numStages-2:-1:2
     
         if p == numStages-2 
@@ -247,7 +254,7 @@ end
             dragForce                = .5.*densityOfFluid.*vAppMag.^2 .*aRef.*Cd;       
             dragEnergy               = dragForce * posInt; 
             propulsionEnergy         = dragEnergy; %maxPropusionEnergy = propulsionPower * vhclPosChangeTimePenalty ;  
-            energySpentToMovePercent = ceil(100*propulsionEnergy/batteryMaxEnergy);
+            energySpentToMovePercent = ceil(100*propulsionEnergy/totalBatteryEnergy);
             batteryEnergyRemaining   = stateBatteryLife - energySpentToMovePercent;  
             timeChargeOnePercentInit = chargeOnePercentPerFlowSpeed(2);
             initCostToFinishMat      = [];
@@ -264,13 +271,16 @@ for iii = length(possibleBatteryLife):-1:1
             end
             
             initCostToFinishMat       =[initCostToFinishMat,initCostToFinish];
-           [smallestCostInit,indexInit]      = min(initCostToFinishMat);
+           
 end
+    [smallestCostInit,indexInit]      = min(initCostToFinishMat);
+    winningPath{pp} = [pp,101-indexInit, batteryLifeSteps{indexInit},pp];
     
-    
+
+
     changingInitandFinalCondition     =  [changingInitandFinalCondition,smallestCostInit];
     
-%% tracing back out the paths from the indices
+
 
 
 
@@ -279,15 +289,9 @@ end
 [smallestStartingPoint,indexChng]      = mink(changingInitandFinalCondition,5);
 
 
-
-
-
-
-
-%winning path 
-winningPath = [100-indexChng, batteryLifeSteps{indexInit}];
+winningPathFinal = winningPath{indexChng(1)};
 figure(5)
-plot( winningPath  ) 
+plot( winningPathFinal  ) 
 title('Winning Path')
 ylabel('Battery Percentage (s)')
 xlabel('Transect position Increment')
@@ -295,9 +299,7 @@ xlabel('Transect position Increment')
 
 
 
-
-
-
+%auvKiteEnergyRun
 
 
 

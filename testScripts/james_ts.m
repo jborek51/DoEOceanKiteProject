@@ -5,7 +5,7 @@ end
 
 lengthScaleFactor = 1/1;
 densityScaleFactor = 1/1;
-duration_s  = 20000*sqrt(lengthScaleFactor);
+duration_s  = 10000*sqrt(lengthScaleFactor);
 
 dynamicCalc = '';
  SPOOLINGCONTROLLER = 'intra';
@@ -50,7 +50,9 @@ fltCtrl.setFcnName('lemOfBooth','');
  %hiLvlCtrl.basisParams.setValue([pi/8,-3*pi/8,0,125],''); % Circle
 %% Environment IC's and dependant properties
 % Set Values
+if ~exist('flowspeed')
  flowspeed = 2;
+end
  flowType = 'constantUniformFlow';
  variableFlow_bs
 %% Set vehicle initial conditions
@@ -262,11 +264,11 @@ tsc.tanRollDes.plot('LineWidth',1.5,'LineStyle','--','Color','r',...
     'DisplayName','Desired Tan Roll');
 legend
 end
-vhcl.animateSim(tsc,3,...
-    'PathFunc',fltCtrl.fcnName.Value,...
-    'PathPosition',true,...
-    'NavigationVecs',true,...
-    'Pause',false)
+% vhcl.animateSim(tsc,3,...
+%     'PathFunc',fltCtrl.fcnName.Value,...
+%     'PathPosition',true,...
+%     'NavigationVecs',true,...
+%     'Pause',false)
 
 
 hold off
@@ -312,12 +314,12 @@ hold off
 %  savefig('pow.fig')
 % %% Flow Plot
 % 
-% figure
-% tsc.flowVelocityVec.plot('LineWidth',1.5,'LineStyle','-','Color','k',...
-%     'DisplayName','Flow Velocity (x)');
-% grid on
-% title('Flow Velocity (x) vs. Time')
-% ylabel('Flow Velocity (x)(m/s)')
+figure
+tsc.flowVelocityVec.plot('LineWidth',1.5,'LineStyle','-','Color','k',...
+    'DisplayName','Flow Velocity (x)');
+grid on
+title('Flow Velocity (x) vs. Time')
+ylabel('Flow Velocity (x)(m/s)')
 %  
 % %% tension vs sStar
 % 
