@@ -3,22 +3,22 @@ spoolSpeeds=-.4:.05:.4;
 mid=ceil(length(spoolSpeeds)/2);
 clear Ten
 tempTen = [];
-Ten=zeros(1000);
-xopts=linspace(spoolSpeeds(1),spoolSpeeds(end),1000);
+Ten=zeros(2000);
+xopts=linspace(spoolSpeeds(1),spoolSpeeds(end),2000);
 for ii = 1:length(spoolSpeeds)
-    %Create a 1000xN Tension surface where N is the number of spool speeds
+    %Create a 2000xN Tension surface where N is the number of spool speeds
     %that were simulated
-    tempTen=[tempTen interp1(pathVars{ii},tens{ii},linspace(0,1,1000),'linear','extrap')'];  
+    tempTen=[tempTen interp1(pathVars{ii},tens{ii},linspace(0,1,2000),'linear','extrap')'];  
 end
-%tempTen is 1000x17 1000 path variables and 17 spoolSpeeds
-for ii = 1:1000
-    %Create a 1000xN Tension surface where N is the number of spool speeds
+%tempTen is 2000x17 2000 path variables and 17 spoolSpeeds
+for ii = 1:2000
+    %Create a 2000xN Tension surface where N is the number of spool speeds
     %that were simulated
     Ten(ii,:)=interp1(spoolSpeeds,tempTen(ii,:),xopts);
 end
 clear p spoolTotal speeds pow
 
-timediffs=diff(interp1(pathVars{mid},times{mid},linspace(0,1,1000),'linear','extrap'));
+timediffs=diff(interp1(pathVars{mid},times{mid},linspace(0,1,2000),'linear','extrap'));
 timediffs=[timediffs timediffs(end)];
 p(1)=mean(mean(Ten));
 n=50;
@@ -32,10 +32,10 @@ for i = 1:n
     if mod(i,10)==0
         disp(100*i/n)
     end
-    speeds{i} = zeros(1,1000);
+    speeds{i} = zeros(1,2000);
     energy(i)=0;
     %%
-    for ii = 1:1000
+    for ii = 1:2000
         hamil = @(x) (p(i)-Ten(ii,xopts==x)).*x;
         [~,bestind]=min(hamil(xopts));
         bestspeed=xopts(bestind);
@@ -59,7 +59,7 @@ for i = 1:n
             ylim([min(min(Ten)) max(max(Ten))])
             legend('Current Tension Profile','Critical Tension','Optimal Spool Speed')
             ylabel('Tension')
-            title(sprintf('Tension at Path Variable = %4.3f',ii/1000))
+            title(sprintf('Tension at Path Variable = %4.3f',ii/2000))
             xlabel('spool speed');
             hold off
             pause(.01)
@@ -101,17 +101,17 @@ ylabel('Power Production (Watts)')
 title('Power Production vs Iteration')
 linkaxes(findall(gcf,'Type','axes'),'x')
 xlim([1 inf])
-subplot(2,2,4);plot(linspace(0,1,1000),speeds{end})
+subplot(2,2,4);plot(linspace(0,1,2000),speeds{end})
 xlabel('pathVar')
 ylabel('Optimized Spool Speed')
 % title=sprintf('Final Optimized Spooling Strategy\nSpools Out %4.2f%% of the time',100*length(speeds{end}(speeds{end}>0))/length(speeds{end}));
-nums=1:1000;
+nums=1:2000;
 nums=nums(speeds{end}>0);
 title(['Final Optimized Spooling Strategy' newline 'Spools Out ' char(string(100*length(speeds{end}(speeds{end}>0))/length(speeds{end}))) '% of the path'])
 % title(['Final Optimized Spooling Strategy' newline 'Spools Out ' char(string(100* sum(timediffs(speeds{end}>0))/sum(timediffs))) '% of the path'])
 
 %% 
-s=linspace(0,1,1000)';
+s=linspace(0,1,2000)';
 figure;h=surf(spoolSpeeds,s,Ten);set(h,'LineStyle','none')
 hold on
 if exist('p','var')
@@ -122,11 +122,11 @@ end
 % figure
 % cmap=jet(17);
 % for i=[1:17]
-%     timediffs1=diff(interp1(pathVars{i},times{i},linspace(0,1,1000),'linear','extrap'));
+%     timediffs1=diff(interp1(pathVars{i},times{i},linspace(0,1,2000),'linear','extrap'));
 %     timediffs1=[timediffs1 timediffs1(end)];
-%     plot(linspace(0,1,1000),timediffs1,'Color',cmap(i,:),'lineWidth',interp1(1:17,1:2,i))
+%     plot(linspace(0,1,2000),timediffs1,'Color',cmap(i,:),'lineWidth',interp1(1:17,1:2,i))
 %     hold on
-%     maxomin(i) = max(diff(interp1(pathVars{i},times{i},linspace(0,.99,1000),'linear','extrap')))/min(diff(interp1(pathVars{i},times{i},linspace(0,.99,1000),'linear','extrap')));
+%     maxomin(i) = max(diff(interp1(pathVars{i},times{i},linspace(0,.99,2000),'linear','extrap')))/min(diff(interp1(pathVars{i},times{i},linspace(0,.99,2000),'linear','extrap')));
 % end
 % colormap jet
 % caxis([-.4 .4])

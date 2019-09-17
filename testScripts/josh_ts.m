@@ -5,13 +5,15 @@ end
 
 lengthScaleFactor = 1/1;
 densityScaleFactor = 1/1;
-duration_s  = 3000*sqrt(lengthScaleFactor);
+duration_s  = 4000*sqrt(lengthScaleFactor);
 dynamicCalc = '';
 SPOOLINGCONTROLLER = 'intra';
 %% Temp Stuff
 load('tenSurf1000x1000.mat')
-ki_iter=60;
+guess=.9e5;
+ki_iter=120;
 kp_iter=120;
+kd_iter=0;
 %% PLOT BITS
 DAMPlot = true; % desired and achieved moments
 CSDPlot = true; % control surface deflections
@@ -154,7 +156,7 @@ fltCtrl.scale(lengthScaleFactor,densityScaleFactor);
 %% Run the simulation
 simWithMonitor('OCTModel')
 parseLogsout;
-kiteAxesPlot
+% kiteAxesPlot
 %stopCallback
 %     indlist = find(tsc.atZero.Data==1);
 %     ind1=indlist(1);
