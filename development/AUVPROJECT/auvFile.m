@@ -5,8 +5,9 @@ transectData
 
 %% Constants
 %number of stages 
-numStages                = length(vq);
-flowSpeeds               = vq; 
+n = 2; %n = the number of times going one way. Back and forth, n = 2 
+numStages                = n*length(vq);
+flowSpeeds               = [vq,fliplr(vq)]; 
 
 %xdistance between each stage
 posInt                   = xq(end)/length(vq);
@@ -22,7 +23,7 @@ batteryMaxEnergy         = 1e+10 ; %joules %100 KHW
 
 %start with full battery
 
-vhclVelocity             = [5;0;0]; % m/s %velocity of the vehicle
+vhclVelocity             = [4;0;0]; % m/s %velocity of the vehicle
 vhclVelMag               = 5;%sqrt(sum(vhclVelocity.^2));
 
 %possible Battery Life
@@ -38,20 +39,22 @@ vhclPosChangeTimePenalty = posInt/vhclVelMag ; %tau
 % COST TO REAL IN AN OUT THE KITE 
 startKiteCost = 300; %seconds
 
-% Total matrix of indexes for the best previous at each current
-totalIndexMat = [];
 
-% Total matrix of smallest cost at each stage of the previous
-initialStateCostPerStage = [];
 %% final cost computation 
-
+changingInitandFinalCondition = [];
+for pp = 100:-1:10
             terminalCost              = [];
-            
+            termAndInitCondition      = pp;
+            % Total matrix of indexes for the best previous at each current
+            totalIndexMat = [];
+
+            % Total matrix of smallest cost at each stage of the previous
+            initialStateCostPerStage = [];
   for j = 1:length(possibleBatteryLife)
       
-            terminalBatteryRemaining  = 100 - possibleBatteryLife(j); 
+            terminalBatteryRemaining  = pp - possibleBatteryLife(j); 
             if terminalBatteryRemaining > 0
-                timeToChargeToFull        = chargeOnePercentPerFlowSpeed(100)*terminalBatteryRemaining + startKiteCost;
+                timeToChargeToFull        = chargeOnePercentPerFlowSpeed(200)*terminalBatteryRemaining + startKiteCost;
             else
                 timeToChargeToFull        = 0;
             end
@@ -214,28 +217,28 @@ end
 % title('Battery Percentage vs. Transect position Increment ')
 % ylabel('Battery Percentage (s)')
 % xlabel('Transect position Increment')
-figure(1)
+% figure(1)
  
-for i = 1:length(eachPathMatr)
-plot(batteryLifeSteps{i})
-hold on 
-end 
-
-title('Battery Percentage vs. Transect position Increment ')
-ylabel('Battery Percentage (s)')
-xlabel('Transect position Increment')
-hold off
-
-figure(2);plot(chargeOnePercentPerFlowSpeed)   
-title('Inversion of Max Flow Profile')
-ylabel('Example Time To Charge One Battery Increment (s)')
-xlabel('Transect position Increment')
+% for i = 1:length(eachPathMatr)
+% plot(batteryLifeSteps{i})
+% hold on 
+% end 
+% 
+% title('Battery Percentage vs. Transect position Increment ')
+% ylabel('Battery Percentage (s)')
+% xlabel('Transect position Increment')
+% hold off
+% 
+% figure(2);plot(chargeOnePercentPerFlowSpeed)   
+% title('Inversion of Max Flow Profile')
+% ylabel('Example Time To Charge One Battery Increment (s)')
+% xlabel('Transect position Increment')
 
 
 %% cost for initial position to finish
 
             vWind                    = flowSpeeds(1);
-            stateBatteryLife         = possibleBatteryLife(end); 
+            stateBatteryLife         = pp; %possibleBatteryLife(end); 
             
 %%%%%%%%%%%%%%%%% INITIAL DRAG DYNAMICS
             Cd                       = 1; 
@@ -263,30 +266,31 @@ for iii = length(possibleBatteryLife):-1:1
             initCostToFinishMat       =[initCostToFinishMat,initCostToFinish];
            [smallestCostInit,indexInit]      = min(initCostToFinishMat);
 end
-    [smallestCostInit,indexInit]      = min(initCostToFinishMat);
     
+    
+    changingInitandFinalCondition     =  [changingInitandFinalCondition,smallestCostInit];
     
 %% tracing back out the paths from the indices
 
-% winning path 
-winningPath = [100, batteryLifeSteps{indexInit}];
+
+
+
+end
+[smallestStartingPoint,indexChng]      = mink(changingInitandFinalCondition,5);
+
+
+
+
+
+
+
+%winning path 
+winningPath = [100-indexChng, batteryLifeSteps{indexInit}];
 figure(5)
 plot( winningPath  ) 
 title('Winning Path')
 ylabel('Battery Percentage (s)')
 xlabel('Transect position Increment')
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
