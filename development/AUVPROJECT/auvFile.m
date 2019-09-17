@@ -90,7 +90,7 @@ for i = numStages-1:-1:2 %TODO the final virtual stage might be counted as a ful
             
             
 %%%%%%%%%%%%%%%%% DRAG DYNAMICS
-            Cd                       = 1; 
+            Cd                       = 1.1*(.05*10 + .42*(.25*pi*1^2))/(10+(.25*pi*1^2)); 
             vApp                     = vWind - vhclVelocity;
             vAppMag                  = sqrt(sum(vApp.^2));
             dragForce                = .5.*densityOfFluid.*vAppMag.^2 .*aRef.*Cd;
