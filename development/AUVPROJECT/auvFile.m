@@ -382,7 +382,7 @@ for i = 1:numStages
 end 
     
 totalTime = sum(costBestPathMat);
-figure(88)
+figure(11)
 
 plotpos=0;
 plottime=0;

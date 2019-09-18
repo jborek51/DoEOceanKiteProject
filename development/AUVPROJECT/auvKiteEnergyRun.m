@@ -3,10 +3,10 @@
  chargingMap = winningPathFinal;
  costBestPathMat = [];
 
-for i = 1:numStages-1
+for i = 1:numStages
     
     %if it is not the terminal stage
-    if i < numStages-1
+    if i < numStages
         
     %if you decided to charge 
          if (chargingMap(i) < chargingMap(i+1))
@@ -45,8 +45,21 @@ for i = 1:numStages-1
        
 end 
 totalTime = sum(costBestPathMat);
-figure(88)
-plot( 0:.001*posInt:2*.001*xq(end)-.001*posInt,[0,cumsum(costBestPathMat)./3600])
+figure(12)
+
+plotpos=0;
+plottime=0;
+for i=1:length(oldtimes)
+    plotpos(length(plotpos)+1) = plotpos(end) + (.001*posInt);
+    plottime(length(plottime)+1) = plottime(end) + vhclPosChangeTimePenalty;
+    if costBestPathMat(i) > (vhclPosChangeTimePenalty)
+        plotpos(length(plotpos)+1) = plotpos(end);
+        plottime(length(plottime)+1) = plottime(end) + (costBestPathMat(i)-vhclPosChangeTimePenalty);
+    end
+end
+plottime=plottime/3600;
+% plot( [0,cumsum(costBestPathMat)./3600],0:.001*posInt:2*.001*xq(end))
+plot(plottime,plotpos)
 title('Time vs. Position')
-xlabel('Position(Km)')
-ylabel('Time (Hrs)')
+ylabel('Position(Km)')
+xlabel('Time (Hrs)')
