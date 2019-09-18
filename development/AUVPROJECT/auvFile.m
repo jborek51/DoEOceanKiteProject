@@ -386,7 +386,7 @@ figure(11)
 
 plotpos=0;
 plottime=0;
-for i=1:length(oldtimes)
+for i=1:length(costBestPathMat)
     plotpos(length(plotpos)+1) = plotpos(end) + (.001*posInt);
     plottime(length(plottime)+1) = plottime(end) + vhclPosChangeTimePenalty;
     if costBestPathMat(i) > (vhclPosChangeTimePenalty)
