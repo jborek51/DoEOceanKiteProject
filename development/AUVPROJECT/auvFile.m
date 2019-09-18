@@ -65,12 +65,12 @@ end
 vhclPosChangeTimePenalty = posInt/vhclVelMag ; %tau
 
 % COST TO REAL IN AN OUT THE KITE 
-startKiteCost = 600; %seconds
+startKiteCost = 3000; %seconds
 
 
 %% final cost computation 
 changingInitandFinalCondition = [];
-for pp = 100:-1:10
+for pp = 100:-1:3
     
     disp(pp)
             terminalCost              = [];
@@ -213,25 +213,29 @@ eachPathMatr = {}; %initializing final path per element of last column matrix
 %rows
 for j = 1:length(possibleBatteryLife)
     
-    pathMat   = [];
-    position1 =  totalIndexMat(j,end);
-    
+     pathMat         = [];
+     costTrackingMat = [];
+     position1       =  totalIndexMat(j,end);
+     position1Cost   = initialStateCostPerStage(j,end);
     %     columns
     for p =  numStages-2:-1:2
     
         if p == numStages-2 
-    position2 = totalIndexMat(position1,p);
+             position2     = totalIndexMat(position1,p);
+             position2Cost = initialStateCostPerStage(position1,p);
         else
-    position2 = totalIndexMat(position2,p);        
+             position2     = totalIndexMat(position2,p); 
+             position2Cost = initialStateCostPerStage(position2,p); 
         end
     
     
     %path mat is a matrix of indexs each elements of the last column took
    
-    pathMat   = [pathMat,position2];
-        
+    pathMat                = [pathMat,position2];
+    costTrackingMat        = [costTrackingMat,position2Cost];    
     end
-    eachPathMatr{j} = [position1,pathMat];
+    eachPathMatr{j}        = [position1,pathMat];
+    eachCostTrackingMat{j} = [position1Cost, costTrackingMat];
 end
 
 
@@ -302,13 +306,14 @@ end
     [smallestCostInit,indexInit]      = min(initCostToFinishMat);
     winningPath{pp} = [pp,101-indexInit, batteryLifeSteps{indexInit},pp];
     
-    figure(99)
-    plot(winningPath{pp})
-    
-    title('Winning Path')
-    ylabel('Battery Percentage (s)')
-    xlabel('Transect position Increment')
-    hold on
+%     figure(99)
+%     plot(0:1:200,winningPath{pp})
+%     
+%     title('Winning Path')
+%     ylabel('Battery Percentage (s)')
+%     xlabel('Transect position Increment')
+%     xlim([0,200])    
+%     hold on
     
     
     changingInitandFinalCondition     =  [changingInitandFinalCondition,smallestCostInit];
@@ -323,15 +328,65 @@ hold off
 [smallestStartingPoint,indexChng]      = mink(changingInitandFinalCondition,5);
 
 
-winningPathFinal = winningPath{indexChng(1)};
-figure(5)
-plot( winningPathFinal  ) 
-title('Winning Path')
-ylabel('Battery Percentage (s)')
-xlabel('Transect position Increment')
+  winningPathFinal = winningPath{indexChng(1)};
+% winningPathFinal = winningPath{99};
+% figure(5)
+% plot(0:1:200, winningPathFinal  ) 
+% title('Winning Path')
+% ylabel('Battery Percentage (s)')
+% xlabel('Transect position Increment')
+% xlim([0,200])
 
+ costBestPathMat = [];
+chargingMap = winningPathFinal;
+for i = 1:numStages-1
+    
+    %if it is not the terminal stage
+    if i < numStages-1
+        
+    %if you decided to charge 
+         if (chargingMap(i) < chargingMap(i+1))
+        
+            % i is trailing by one from where you actually are in emulating the
+            % best flow path
+             flowspeed        = flowSpeeds(i+1); %flowspeed at the charging location
+             percentOfBattery = chargingMap(i+1) - chargingMap(i);
+             chargeOnePercentPerFlowSpeedFinal = chargeOnePercentPerFlowSpeed(i+1);
+             chargingTime = percentOfBattery*chargeOnePercentPerFlowSpeedFinal; % telling you how much to charge 
+             costBestPath = vhclPosChangeTimePenalty + startKiteCost+chargingTime;
+         else
+             costBestPath = vhclPosChangeTimePenalty; 
+         end
+       
+    else
+        if (chargingMap(i) < chargingMap(i+1))
+        
+            % i is trailing by one from where you actually are in emulating the
+            % best flow path
+             flowspeed        = flowSpeeds(i+1); %flowspeed at the charging location
+             percentOfBattery = chargingMap(i+1) - chargingMap(i);
+             chargeOnePercentPerFlowSpeedFinal = chargeOnePercentPerFlowSpeed(i+1);
+             chargingTime = percentOfBattery*chargeOnePercentPerFlowSpeedFinal; % telling you how much to charge  
 
-
+             
+             costBestPath = startKiteCost+chargingTime;
+         else
+             costBestPath =0; 
+         end
+       
+    end
+    
+    
+    costBestPathMat =[costBestPathMat,costBestPath];
+       
+end 
+    
+totalTime = sum(costBestPathMat);
+figure(88)
+plot( 0:.001*posInt:2*.001*xq(end)-.001*posInt,[0,cumsum(costBestPathMat)./3600])
+title('Time vs. Position')
+xlabel('Position(Km)')
+ylabel('Time (Hrs)')
 
 %auvKiteEnergyRun
 

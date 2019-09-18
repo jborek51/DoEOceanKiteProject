@@ -1,6 +1,6 @@
 
-% runs the OCT model
- chargingMap = winningPath;
+%% runs the OCT model
+ chargingMap = winningPathFinal;
  costBestPathMat = [];
 
 for i = 1:numStages-1
@@ -45,4 +45,8 @@ for i = 1:numStages-1
        
 end 
 totalTime = sum(costBestPathMat);
-
+figure(88)
+plot( 0:.001*posInt:2*.001*xq(end)-.001*posInt,[0,cumsum(costBestPathMat)./3600])
+title('Time vs. Position')
+xlabel('Position(Km)')
+ylabel('Time (Hrs)')
