@@ -1,10 +1,10 @@
 %script for visualizing transect data from shamir
 %%
 
-%load transect Data
- load('2014_new')
+% load transect Data
+% load('2014_new')
 
-% load('E:\flowData\2014_new')  
+load('E:\flowData\2014_new')  
 timeSel = 7000;
 lonRad = deg2rad(lon(1:16));
 latRad = deg2rad(lat(1:16));
@@ -53,7 +53,7 @@ title(' Max flow velocity vs.  Transect Positions')
 ylabel('Max Flow Velocity (m/s)')
 xlabel('Transect Positions (m)')
  
-constVel = 4;
+constVel = 1.25;
 Ubot = [Ubot flip(Ubot)];
 Vbot = [Vbot flip(Vbot)];
 moveDirX = [moveDirX flip(-1*moveDirX)];

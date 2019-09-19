@@ -19,12 +19,12 @@ densityOfFluid           = 1000; %kg/m^3
 aRef                     = 10; %m^2
 
 %maximum battery energy capacity 
-totalBatteryEnergy        = 9e+8; %joules %100 KHW
+totalBatteryEnergy        = 23400000; %joules %100 KHW
 
 %start with full battery
 
-vhclVelocity             = [4;0;0]; % m/s %velocity of the vehicle
-vhclVelMag               = 4;%sqrt(sum(vhclVelocity.^2));
+vhclVelocity             = [1.5;0;0]; % m/s %velocity of the vehicle
+vhclVelMag               = 1.5;%sqrt(sum(vhclVelocity.^2));
 
 %possible Battery Life
 possibleBatteryLife      = 0:100;
@@ -65,12 +65,12 @@ end
 vhclPosChangeTimePenalty = posInt/vhclVelMag ; %tau
 
 % COST TO REAL IN AN OUT THE KITE 
-startKiteCost = 3000; %seconds
+startKiteCost = 600; %seconds
 
 
 %% final cost computation 
 changingInitandFinalCondition = [];
-for pp = 100:-1:3
+for pp = 100:-1:99
     
     disp(pp)
             terminalCost              = [];
@@ -328,14 +328,14 @@ hold off
 [smallestStartingPoint,indexChng]      = mink(changingInitandFinalCondition,5);
 %%
 
-  winningPathFinal = winningPath{indexChng(1)};
-% winningPathFinal = winningPath{99};
-% figure(5)
-% plot(0:1:200, winningPathFinal  ) 
-% title('Winning Path')
-% ylabel('Battery Percentage (s)')
-% xlabel('Transect position Increment')
-% xlim([0,200])
+%  winningPathFinal = winningPath{indexChng(1)};
+ winningPathFinal = winningPath{99};
+figure;
+plot(0:1:200, winningPathFinal  ) 
+title('Winning Path')
+ylabel('Battery Percentage (s)')
+xlabel('Transect position Increment')
+xlim([0,200])
 
 costBestPathMat = [];
 chargingMap = winningPathFinal;
@@ -349,7 +349,7 @@ for i = 1:numStages
         
             % i is trailing by one from where you actually are in emulating the
             % best flow path
-             flowspeed        = flowSpeeds(i+1); %flowspeed at the charging location
+             flowspeed        = flowSpeeds(i); %flowspeed at the charging location
              percentOfBattery = chargingMap(i+1) - chargingMap(i);
              chargeOnePercentPerFlowSpeedFinal = chargeOnePercentPerFlowSpeed(i+1);
              chargingTime = percentOfBattery*chargeOnePercentPerFlowSpeedFinal; % telling you how much to charge 
@@ -363,9 +363,9 @@ for i = 1:numStages
         
             % i is trailing by one from where you actually are in emulating the
             % best flow path
-             flowspeed        = flowSpeeds(i+1); %flowspeed at the charging location
+             flowspeed        = flowSpeeds(i); %flowspeed at the charging location
              percentOfBattery = chargingMap(i+1) - chargingMap(i);
-             chargeOnePercentPerFlowSpeedFinal = chargeOnePercentPerFlowSpeed(i+1);
+             chargeOnePercentPerFlowSpeedFinal = chargeOnePercentPerFlowSpeed(i);
              chargingTime = percentOfBattery*chargeOnePercentPerFlowSpeedFinal; % telling you how much to charge  
 
              
@@ -382,10 +382,11 @@ for i = 1:numStages
 end 
     
 totalTime = sum(costBestPathMat);
-figure(11)
+
 
 plotpos=0;
 plottime=0;
+figure;
 for i=1:length(costBestPathMat)
     plotpos(length(plotpos)+1) = plotpos(end) + (.001*posInt);
     plottime(length(plottime)+1) = plottime(end) + vhclPosChangeTimePenalty;
