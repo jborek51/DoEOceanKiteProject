@@ -38,25 +38,25 @@ possibleBatteryLife      = 0:100;
  eff=.5;
  Aturb=2*8.5;%m^3
  energyInOnePercent =totalBatteryEnergy/100; %Joules THIS NUMBER IS RANDOM AND SHOULD BE A REAL NUMBER
-  chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
+%   chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
 
 %  chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
 
-% x1 =  [.1,.5,1,1.5,2];
-% x2 =  [5,1268,8670,35390,83130];
-% flowForPower = .1:.001:2;
-% interpolatedPower = interp1(x1,x2,flowForPower,'cubic');
-% timeToChargePF =  energyInOnePercent./interpolatedPower;
-% format long
-% for q = 1:length(flowSpeeds)
-%     
-%     tempFlow = flowSpeeds(q)
-%    [num,ind]=find(abs(10000000000*(flowForPower-tempFlow))<1)  ;
-%     
-%    indOfTTC = timeToChargePF(ind)
-%    chargeOnePercentPerFlowSpeed = [chargeOnePercentPerFlowSpeed,indOfTTC ];
-%    
-% end
+x1 =  [.1,.5,1,1.5,2];
+x2 =  [5,1268,8670,35390,83130];
+flowForPower = .1:.001:2;
+interpolatedPower = interp1(x1,x2,flowForPower,'cubic');
+timeToChargePF =  energyInOnePercent./interpolatedPower;
+format long
+for q = 1:length(flowSpeeds)
+    
+    tempFlow = flowSpeeds(q)
+   [num,ind]=find(abs(10000000000*(flowForPower-tempFlow))<1)  ;
+    
+   indOfTTC = timeToChargePF(ind)
+   chargeOnePercentPerFlowSpeed = [chargeOnePercentPerFlowSpeed,indOfTTC ];
+   
+end
 
 %  plot(chargeOnePercentPerFlowSpeed)
 %  figure(2)

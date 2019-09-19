@@ -38,7 +38,7 @@ possibleBatteryLife      = 0:100;
  eff=.5;
  Aturb=2*8.5;%m^3
  energyInOnePercent =totalBatteryEnergy/100; %Joules THIS NUMBER IS RANDOM AND SHOULD BE A REAL NUMBER
- %chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
+%  chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
 
 %  chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
 
