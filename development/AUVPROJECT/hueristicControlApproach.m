@@ -38,25 +38,25 @@ possibleBatteryLife      = 0:100;
  eff=.5;
  Aturb=2*8.5;%m^3
  energyInOnePercent =totalBatteryEnergy/100; %Joules THIS NUMBER IS RANDOM AND SHOULD BE A REAL NUMBER
-%  chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
+  chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
 
 %  chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
 
-x1 =  [.1,.5,1,1.5,2];
-x2 =  [5,1268,8670,35390,83130];
-flowForPower = .1:.001:2;
-interpolatedPower = interp1(x1,x2,flowForPower,'cubic');
-timeToChargePF =  energyInOnePercent./interpolatedPower;
-format long
-for q = 1:length(flowSpeeds)
-    
-    tempFlow = flowSpeeds(q)
-   [num,ind]=find(abs(10000000000*(flowForPower-tempFlow))<1)  ;
-    
-   indOfTTC = timeToChargePF(ind)
-   chargeOnePercentPerFlowSpeed = [chargeOnePercentPerFlowSpeed,indOfTTC ];
-   
-end
+% x1 =  [.1,.5,1,1.5,2];
+% x2 =  [5,1268,8670,35390,83130];
+% flowForPower = .1:.001:2;
+% interpolatedPower = interp1(x1,x2,flowForPower,'cubic');
+% timeToChargePF =  energyInOnePercent./interpolatedPower;
+% format long
+% for q = 1:length(flowSpeeds)
+%     
+%     tempFlow = flowSpeeds(q)
+%    [num,ind]=find(abs(10000000000*(flowForPower-tempFlow))<1)  ;
+%     
+%    indOfTTC = timeToChargePF(ind)
+%    chargeOnePercentPerFlowSpeed = [chargeOnePercentPerFlowSpeed,indOfTTC ];
+%    
+% end
 
 %  plot(chargeOnePercentPerFlowSpeed)
 %  figure(2)
@@ -384,19 +384,19 @@ startKiteCost = 600; %seconds
 % totalTime = sum(costBestPathMat);
 % figure(11)
 % 
-% plotpos=0;
+% plotpos1=0;
 % plottime=0;
 % for i=1:length(oldtimes)
-%     plotpos(length(plotpos)+1) = plotpos(end) + (.001*posInt);
+%     plotpos1(length(plotpos1)+1) = plotpos1(end) + (.001*posInt);
 %     plottime(length(plottime)+1) = plottime(end) + vhclPosChangeTimePenalty;
 %     if costBestPathMat(i) > (vhclPosChangeTimePenalty)
-%         plotpos(length(plotpos)+1) = plotpos(end);
+%         plotpos1(length(plotpos1)+1) = plotpos1(end);
 %         plottime(length(plottime)+1) = plottime(end) + (costBestPathMat(i)-vhclPosChangeTimePenalty);
 %     end
 % end
 % plottime=plottime/3600;
 % % plot( [0,cumsum(costBestPathMat)./3600],0:.001*posInt:2*.001*xq(end))
-% plot(plottime,plotpos)
+% plot(plottime,plotpos1)
 % title('Time vs. Position')
 % ylabel('Position(Km)')
 % xlabel('Time (Hrs)')
@@ -445,31 +445,31 @@ for i = 1:numStages
 end
 
 figure(33) 
-plotpos=0;
-plottime=0;
+plotpos1=0;
+plottime1=0;
 for i=1:length(timePenMat)
-    plotpos(length(plotpos)+1) = plotpos(end) + (.001*posInt);
-    plottime(length(plottime)+1) = plottime(end) + vhclPosChangeTimePenalty;
+    plotpos1(length(plotpos1)+1) = plotpos1(end) + (.001*posInt);
+    plottime1(length(plottime1)+1) = plottime1(end) + vhclPosChangeTimePenalty;
     if timePenMat(i) > (vhclPosChangeTimePenalty)
-        plotpos(length(plotpos)+1) = plotpos(end);
-        plottime(length(plottime)+1) = plottime(end) + (timePenMat(i)-vhclPosChangeTimePenalty);
+        plotpos1(length(plotpos1)+1) = plotpos1(end);
+        plottime1(length(plottime1)+1) = plottime1(end) + (timePenMat(i)-vhclPosChangeTimePenalty);
     end
 end
-plottime=plottime/3600;
+
+plottime1=plottime1/3600;
 % plot( [0,cumsum(costBestPathMat)./3600],0:.001*posInt:2*.001*xq(end))
-plot(plottime,plotpos)
+plot(plottime1,plotpos1,plottime2,plotpos2)
 title('Time vs. Position')
 ylabel('Position(Km)')
 xlabel('Time (Hrs)')
+legend
 
-
-
-
-figure(7) 
-plot(batMat./10) 
-
-
-
+% figure(7) 
+% plot(batMat./10) 
+% 
+% title('Battery Percentage vs. Position Increment')
+% ylabel('Battery Percentage')
+% xlabel('Position Increment')
 
 
 

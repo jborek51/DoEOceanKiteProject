@@ -13,7 +13,7 @@ for i = 1:numStages
         
             % i is trailing by one from where you actually are in emulating the
             % best flow path
-             flowspeed        = flowSpeeds(i+1); %flowspeed at the charging location
+             flowspeed        = flowSpeeds(i); %flowspeed at the charging location
              percentOfBattery = chargingMap(i+1) - chargingMap(i);
              batteryMaxEnergy = percentOfBattery*.01*totalBatteryEnergy ; % telling you how much to charge 
 
@@ -28,7 +28,7 @@ for i = 1:numStages
         
             % i is trailing by one from where you actually are in emulating the
             % best flow path
-             flowspeed        = flowSpeeds(i+1); %flowspeed at the charging location
+             flowspeed        = flowSpeeds(i); %flowspeed at the charging location
              percentOfBattery = chargingMap(i+1) - chargingMap(i+1);
              batteryMaxEnergy = percentOfBattery*.01*totalBatteryEnergy ; % telling you how much to charge 
 
@@ -49,7 +49,7 @@ figure(12)
 
 plotpos=0;
 plottime=0;
-for i=1:length(oldtimes)
+for i=1:length(costBestPathMat)
     plotpos(length(plotpos)+1) = plotpos(end) + (.001*posInt);
     plottime(length(plottime)+1) = plottime(end) + vhclPosChangeTimePenalty;
     if costBestPathMat(i) > (vhclPosChangeTimePenalty)
@@ -60,6 +60,6 @@ end
 plottime=plottime/3600;
 % plot( [0,cumsum(costBestPathMat)./3600],0:.001*posInt:2*.001*xq(end))
 plot(plottime,plotpos)
-title('Time vs. Position')
+title('Time vs. Position: Dynamic Programming Solution')
 ylabel('Position(Km)')
 xlabel('Time (Hrs)')

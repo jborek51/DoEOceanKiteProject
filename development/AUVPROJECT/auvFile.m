@@ -23,8 +23,8 @@ totalBatteryEnergy        = 23400000; %joules %100 KHW
 
 %start with full battery
 
-vhclVelocity             = [1.5;0;0]; % m/s %velocity of the vehicle
-vhclVelMag               = 1.5;%sqrt(sum(vhclVelocity.^2));
+vhclVelocity             = [1.25;0;0]; % m/s %velocity of the vehicle
+vhclVelMag               = 1.25;%sqrt(sum(vhclVelocity.^2));
 
 %possible Battery Life
 possibleBatteryLife      = 0:100;
@@ -38,7 +38,7 @@ possibleBatteryLife      = 0:100;
  eff=.5;
  Aturb=2*8.5;%m^3
  energyInOnePercent =totalBatteryEnergy/100; %Joules THIS NUMBER IS RANDOM AND SHOULD BE A REAL NUMBER
-%  chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
+ %chargeOnePercentPerFlowSpeed = energyInOnePercent./(eff*.5*1000*Aturb*flowSpeeds.^3);
 
 %  chargeOnePercentPerFlowSpeed             = 30./flowSpeeds;%randi(10,1,100);
 
@@ -50,10 +50,10 @@ timeToChargePF =  energyInOnePercent./interpolatedPower;
 format long
 for q = 1:length(flowSpeeds)
     
-    tempFlow = flowSpeeds(q)
-   [num,ind]=find(abs(10000000000*(flowForPower-tempFlow))<1)  ;
+    tempFlow = flowSpeeds(q);
+   [num,ind]=find(abs(10000000000*(flowForPower-tempFlow))<1);  
     
-   indOfTTC = timeToChargePF(ind)
+   indOfTTC = timeToChargePF(ind);
    chargeOnePercentPerFlowSpeed = [chargeOnePercentPerFlowSpeed,indOfTTC ];
    
 end
@@ -70,7 +70,7 @@ startKiteCost = 600; %seconds
 
 %% final cost computation 
 changingInitandFinalCondition = [];
-for pp = 100:-1:99
+for pp = 100:-1:2
     
     disp(pp)
             terminalCost              = [];
@@ -328,12 +328,12 @@ hold off
 [smallestStartingPoint,indexChng]      = mink(changingInitandFinalCondition,5);
 %%
 
-%  winningPathFinal = winningPath{indexChng(1)};
- winningPathFinal = winningPath{99};
+  winningPathFinal = winningPath{indexChng(1)};
+ %winningPathFinal = winningPath{99};
 figure;
 plot(0:1:200, winningPathFinal  ) 
-title('Winning Path')
-ylabel('Battery Percentage (s)')
+title('Battery Percentage vs. Position Increment: Dynamic Programming Solution')
+ylabel('Battery Percentage')
 xlabel('Transect position Increment')
 xlim([0,200])
 
@@ -384,20 +384,20 @@ end
 totalTime = sum(costBestPathMat);
 
 
-plotpos=0;
-plottime=0;
+plotpos2=0;
+plottime2=0;
 figure;
 for i=1:length(costBestPathMat)
-    plotpos(length(plotpos)+1) = plotpos(end) + (.001*posInt);
-    plottime(length(plottime)+1) = plottime(end) + vhclPosChangeTimePenalty;
+    plotpos2(length(plotpos2)+1) = plotpos2(end) + (.001*posInt);
+    plottime2(length(plottime2)+1) = plottime2(end) + vhclPosChangeTimePenalty;
     if costBestPathMat(i) > (vhclPosChangeTimePenalty)
-        plotpos(length(plotpos)+1) = plotpos(end);
-        plottime(length(plottime)+1) = plottime(end) + (costBestPathMat(i)-vhclPosChangeTimePenalty);
+        plotpos2(length(plotpos2)+1) = plotpos2(end);
+        plottime2(length(plottime2)+1) = plottime2(end) + (costBestPathMat(i)-vhclPosChangeTimePenalty);
     end
 end
-plottime=plottime/3600;
+plottime2=plottime2/3600;
 % plot( [0,cumsum(costBestPathMat)./3600],0:.001*posInt:2*.001*xq(end))
-plot(plottime,plotpos)
+plot(plottime2,plotpos2)
 title('Time vs. Position')
 ylabel('Position(Km)')
 xlabel('Time (Hrs)')
