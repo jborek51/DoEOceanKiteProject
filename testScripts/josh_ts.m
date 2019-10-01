@@ -11,9 +11,10 @@ SPOOLINGCONTROLLER = 'intra';
 %% Temp Stuff
 load('tenSurf1000x1000.mat')
 guess=.9e5;
-ki_iter=120;
-kp_iter=120;
+ki_iter=1500;
+kp_iter=1500;
 kd_iter=0;
+TenWidth=1000;
 %% PLOT BITS
 DAMPlot = true; % desired and achieved moments
 CSDPlot = true; % control surface deflections
